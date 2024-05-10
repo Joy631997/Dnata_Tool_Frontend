@@ -1,0 +1,64 @@
+body {
+    font-family: Arial, sans-serif;
+    max-height: fit-content;
+  }
+
+  #errorMessage {
+    color: red;
+    text-align: center; /* Center the text horizontally */
+    /*display: block; /* Initially hide the error message */
+    font-size: 40px;
+  }
+
+  #dateLabel,
+  #dailyInputs,
+  #monthlyInputs,
+  #dailyInputsTo,
+  #monthlyInputsTo,
+  #seachButton,
+  #dropdownForreport {
+    text-align: left;
+    margin-right: 5px;
+    margin-top: 15px;
+    margin-left: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    display: inline;
+    flex-wrap: wrap;
+  }
+
+  #dnata {
+    text-align: center;
+    font-weight: bold;
+    border: 1px black solid;
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    padding: 6px;
+  }
+
+  form {
+    border: 1px black solid;
+    padding: 6px;
+    text-align: center;
+  }
+
+  /* Style for the table header */
+  .table-striped thead th {
+    background-color: #3498db;
+    color: #ffffff;
+  }
+
+  /* Even row background color */
+  .table-bordered tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  /* Odd row background color */
+  .table-bordered tbody tr:nth-child(odd) {
+    background-color: silver;
+  }
+
+  .table-striped tbody tr:hover {
+    background-color: #5909ba;
+  }

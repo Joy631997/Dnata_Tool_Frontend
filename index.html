@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <!-- <script src="script.js"></script> -->
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-height: fit-content;
+      }
+
+      #errorMessage {
+        color: red;
+        text-align: center; /* Center the text horizontally */
+        /*display: block; /* Initially hide the error message */
+        font-size: 40px;
+      }
+
+      #dateLabel,
+      #dailyInputs,
+      #monthlyInputs,
+      #dailyInputsTo,
+      #monthlyInputsTo,
+      #seachButton,
+      #dropdownForReport {
+        text-align: left;
+        margin-right: 5px;
+        margin-top: 15px;
+        margin-left: 5px;
+        display: flex;
+        flex-wrap: wrap;
+        display: inline;
+        flex-wrap: wrap;
+      }
+
+      #dnata {
+        text-align: center;
+        font-weight: bold;
+        border: 1px black solid;
+        width: 100%;
+        height: auto;
+        margin-bottom: 20px;
+        padding: 6px;
+      }
+
+      form {
+        border: 1px black solid;
+        padding: 6px;
+        text-align: center;
+      }
+
+      /* Style for the table header */
+      .table-striped thead th {
+        background-color: #3498db;
+        color: #ffffff;
+      }
+
+      /* Even row background color */
+      .table-bordered tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      /* Odd row background color */
+      .table-bordered tbody tr:nth-child(odd) {
+        background-color: silver;
+      }
+
+      .table-striped tbody tr:hover {
+        background-color: #5909ba;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-2">
+      <label
+        id="dnata"
+        style="
+          background-color: #04aa6d;
+          color: aliceblue;
+          text-shadow: 8px 2px 6px #000000;
+        "
+        >Dnata Reports</label
+      >
+
+      <div
+        style="
+          display: inline-flex;
+          align-items: center;
+          background-color: white;
+        "
+      >
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="interval"
+            id="daily"
+            value="Daily"
+            checked
+          />
+          <label class="form-check-label" for="daily">Daily</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="interval"
+            id="weekly"
+            value="Weekly"
+          />
+          <label class="form-check-label" for="weekly">Weekly</label>
+        </div>
+  
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="interval"
+            id="monthly"
+            value="Monthly"
+          />
+          <label class="form-check-label" for="monthly">Monthly</label>
+        </div>
+      </div>
+
+      <form id="dateFilterForm" class="form-inline">
+        <div
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            background-color: aliceblue;
+          "
+          class="col"
+        >
+          <label class="form-label" id="dateLabel"><b>From:</b></label>
+
+          <div class="mb-3" id="dailyInputs" style="margin-right: 10px">
+            <input
+              type="date"
+              class="form-control"
+              id="startDate"
+              onchange="updateInputs()"
+              max=""
+            />
+          </div>
+
+          <div
+            class="mb-3"
+            id="monthlyInputs"
+            style="display: none; margin-right: 10px"
+          >
+            <input
+              type="month"
+              class="form-control"
+              name="startMonth"
+              id="startMonth"
+              value=""
+              required
+              onchange="updateInputs()"
+              max=""
+            />
+          </div>
+          &nbsp;&nbsp;
+
+          <label class="form-label" id="dateLabel"><b>To:</b></label>
+
+          <div class="mb-3" id="dailyInputsTo" style="margin-right: 10px">
+            <input
+              type="date"
+              class="form-control"
+              id="endDate"
+              required
+              onchange="updateInputs()"
+              max=""
+            />
+          </div>
+
+          <div
+            class="mb-3"
+            id="monthlyInputsTo"
+            style="display: none; margin-right: 10px"
+          >
+            <input
+              type="month"
+              class="form-control"
+              id="endMonth"
+              name="endMonth"
+              required
+              onchange="updateInputs()"
+              max=""
+            />
+          </div>
+
+          <label for="dropdownForReport" id="reportLabel"
+            ><b>Select Report:</b></label
+          >
+
+          <div class="mb-3">
+            <select
+              class="form-select"
+              id="dropdownForReport"
+              onchange="updateInputs()"
+            >
+              <option value="getIVRReportForOmni">Omni Report</option>
+              <option value="getIVRReportForFalcon">Falcon Report</option>
+            </select>
+          </div>
+
+          &nbsp;
+
+          <div
+            class="mb-3"
+            id="searchButton"
+            style="display: flex; justify-content: flex-end"
+          >
+            &nbsp;&nbsp;
+            <button
+              id="executeButton"
+              class="btn btn-primary"
+              onclick="executeReport()"
+              type="submit"
+              style="display: none"
+              disabled
+            >
+              Search
+            </button>
+
+            &nbsp;&nbsp;<button
+              id="exportButton"
+              class="btn btn-primary"
+              onclick="exportToExcel()"
+              style="display: none"
+            >
+              Export to Excel
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <hr />
+
+      <div id="resultContainer" class="mt-1">
+        <center>
+          <p
+            id="noDataMessage"
+            style="align-items: center; justify-content: center"
+          >
+            No Records Found
+          </p>
+        </center>
+      </div>
+
+      <div id="errorMessage"></div>
+    </div>
+
+    <script>
+
+       // Function to update the max attribute of date inputs to prevent selecting future dates
+    function updateDateMax() {
+
+      var currentDate = new Date();
+        var currentYear = currentDate.getFullYear();
+        var currentMonth = currentDate.getMonth();     //+ 1; // January is 0, so adding 1
+
+        // Set max attribute for month inputs
+        var currentMonthFormatted = currentYear + '-' + (currentMonth < 10 ? '0' : '') + currentMonth; // Format as yyyy-mm
+        document.getElementById('startMonth').max = currentMonthFormatted;
+        document.getElementById('endMonth').max = currentMonthFormatted;
+
+        var currentDate = new Date().toISOString().split('T')[0]; // Get current date in yyyy-mm-dd format
+        document.getElementById('startDate').max = currentDate;
+        document.getElementById('endDate').max = currentDate;
+    }
+
+    // Call the function when the page loads
+    window.onload = function() {
+        updateDateMax();
+    };
+
+
+      function toggleInputs() {
+        const dailyInputs = document.getElementById("dailyInputs");
+        const dailyInputsTo = document.getElementById("dailyInputsTo");
+        const monthlyInputs = document.getElementById("monthlyInputs");
+        const monthlyInputsTo = document.getElementById("monthlyInputsTo");
+
+        const dailyRadio = document.getElementById("daily");
+        const monthlyRadio = document.getElementById("monthly");
+
+        if (dailyRadio.checked) {
+          dailyInputs.style.display = "block";
+          dailyInputsTo.style.display = "block";
+          monthlyInputs.style.display = "none";
+          monthlyInputsTo.style.display = "none";
+        } else if (monthlyRadio.checked) {
+          dailyInputs.style.display = "none";
+          dailyInputsTo.style.display = "none";
+          monthlyInputs.style.display = "block";
+          monthlyInputsTo.style.display = "block";
+        }
+      }
+
+      // Attach event listener to radio buttons
+      document.querySelectorAll('input[name="interval"]').forEach((radio) => {
+        radio.addEventListener("change", toggleInputs);
+      });
+
+      // Attach event listeners to the date inputs
+      document
+        .getElementById("startDate")
+        .addEventListener("change", handleInputChange);
+      document
+        .getElementById("endDate")
+        .addEventListener("change", handleInputChange);
+      document
+        .getElementById("startMonth")
+        .addEventListener("change", handleInputChange);
+      document
+        .getElementById("endMonth")
+        .addEventListener("change", handleInputChange);
+      document
+        .getElementById("daily")
+        .addEventListener("change", handleInputChange);
+      document
+        .getElementById("monthly")
+        .addEventListener("change", handleInputChange);
+      document
+        .getElementById("dropdownForReport")
+        .addEventListener("change", handleInputChange);
+
+      // Attach event listener to the search button
+      document
+        .getElementById("executeButton")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Prevent the default form submission behavior
+          handleInputChange(); // Call the function to handle input changes
+        });
+
+      document
+        .getElementById("exportButton")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Prevent the default form submission behavior
+          // handleExportButtonClick(); // Call the function to handle export button click
+        });
+
+      // document.getElementById("errorMessage").addEventListener("click", function(event))
+      // {
+
+      //   handleInputChange();
+      // }
+
+      // Function to handle input change events
+      function handleInputChange() {
+        clearData(); // Clear existing data
+        hideErrorMessage();
+        // executeReport(); // Re-execute the report generation function
+
+        // if(document.getElementById("errorMessage") === 'errorMessage')
+        // {
+        //   const resultContainer = document.getElementById("errorContainer");
+        // resultContainer.innerHTML = ""; // Clearing the container
+        // }
+      }
+
+      // Function to clear existing data
+      function clearData() {
+        const resultContainer = document.getElementById("resultContainer");
+        resultContainer.innerHTML = ""; // Clearing the container
+      }
+
+      // Function to hide the error message
+      function hideErrorMessage() {
+        const errorMessageElement = document.getElementById("errorMessage");
+        errorMessageElement.textContent = ""; // Clear the message
+        errorMessageElement.style.display = "none"; // Hide the error message
+      }
+
+      function executeReport() {
+        let startDate;
+        let endDate;
+
+        let falconApplication = "Falcon";
+        let omniApplication = "Omni";
+
+        let reportValue = document.getElementById("dropdownForReport").value;
+        let matchFalcon = reportValue.match(/Falcon/);
+        console.log("Mathched falcon value : " + matchFalcon);
+        let matchOmni = reportValue.match(/Omni/);
+        console.log("Mathched falcon value : " + matchOmni);
+
+        const dailyRadioButton = document.getElementById("daily");
+        console.log(dailyRadioButton);
+        const monthlyRadioButton = document.getElementById("monthly");
+
+        const reportType = dailyRadioButton.checked
+          ? dailyRadioButton.value
+          : monthlyRadioButton.value;
+
+        console.log("Report type is : " + reportType);
+
+        const dropdownValue =
+          document.getElementById("dropdownForReport").value;
+
+        if (reportType == "Monthly") {
+          //startDate = document.getElementById("startMonth").value;
+          // endDate = document.getElementById("endMonth").value;
+          const rawStartMonth = document.getElementById("startMonth").value; // '2024-01'
+          const rawEndMonth = document.getElementById("endMonth").value; // '2024-02'
+
+          console.log("rawStartMonth :", rawStartMonth);
+          startDate = formatDate(rawStartMonth);
+          console.log("formated startDate", startDate); // Output: 2024-01-01T00:00:00.000Z
+
+          // Format end date
+          console.log("rawEndMonth :", rawEndMonth);
+          endDate = formatDate(rawEndMonth, true); // Pass true to indicate end of month
+          console.log("formated endDate", endDate); // Output: 2024-01-31T23:59:00.000Z
+        } else {
+          startDate = document.getElementById("startDate").value;
+          startDate = startDate + " 00:00:00.000";
+          endDate = document.getElementById("endDate").value;
+          endDate = endDate + " 23:59:59.000";
+        }
+        console.log(
+          `Your given Input \n startDate: ${startDate}, endDate: ${endDate}, reportType: ${reportType}, dropdownForReport : ${dropdownValue}`
+        );
+
+        //exportButton.style.display = 'block';
+
+        //   const isValid = startDate && endDate && reportType && dropdownValue;
+        //   executeButton.style.display = isValid ? "block" : "none";
+
+        let apiUrl;
+
+        if (
+          dropdownValue === "getIVRReportForFalcon" &&
+          reportType == "Daily"
+        ) {
+          apiUrl = `http://localhost:8080/api/daily?application=${encodeURIComponent(
+            matchFalcon
+          )}&startDate=${encodeURIComponent(
+            startDate
+          )}&endDate=${encodeURIComponent(
+            endDate
+          )}&reportType=${encodeURIComponent(reportType)}`;
+        } else if (
+          dropdownValue === "getIVRReportForOmni" &&
+          reportType == "Daily"
+        ) {
+          apiUrl = `http://localhost:8080/api/daily?application=${encodeURIComponent(
+            matchOmni
+          )}&startDate=${encodeURIComponent(
+            startDate
+          )}&endDate=${encodeURIComponent(
+            endDate
+          )}&reportType=${encodeURIComponent(reportType)}`;
+        }
+
+        if (
+          dropdownValue === "getIVRReportForFalcon" &&
+          reportType == "Monthly"
+        ) {
+          apiUrl = `http://localhost:8080/api/monthly?application=${encodeURIComponent(
+            matchFalcon
+          )}&startDate=${encodeURIComponent(
+            startDate
+          )}&endDate=${encodeURIComponent(
+            endDate
+          )}&reportType=${encodeURIComponent(reportType)}`;
+        } else if (
+          dropdownValue === "getIVRReportForOmni" &&
+          reportType == "Monthly"
+        ) {
+          apiUrl = `http://localhost:8080/api/monthly?application=${encodeURIComponent(
+            matchOmni
+          )}&startDate=${encodeURIComponent(
+            startDate
+          )}&endDate=${encodeURIComponent(
+            endDate
+          )}&reportType=${encodeURIComponent(reportType)}`;
+        }
+
+        fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              // throw new Error(`HTTP error! Status: ${response.status}`);
+
+              return response.json();
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Success:", data);
+            exportButton.style.display = "block";
+
+            console.log("Data is : " + data);
+            const message = data.message;
+            console.log("Message:", message);
+
+            if (data.statusCode === 200) {
+              displayData(data);
+            } else {
+              showErrorMessage(data.message);
+            }
+
+            // Handle the response data as needed
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            showFrontendErrorMessage();
+          });
+      }
+
+      function exportToExcel() {
+        const container = document.getElementById("resultContainer");
+
+        // Check if container has child elements (data)
+        if (container.hasChildNodes()) {
+          const table = container.querySelector("table");
+
+          // Check if table has thead element (headers)
+          const thead = table.querySelector("thead");
+          if (!thead) {
+            alert("Table is missing headers.");
+            return;
+          }
+
+          // Get all rows
+          const rows = table.querySelectorAll("tr");
+
+          // Get all rows excluding the first one (headers)
+          //  const rows = table.querySelectorAll("tr:not(:first-child)");
+
+          // Create a new worksheet
+          const ws = XLSX.utils.aoa_to_sheet([[]]); // Start with an empty sheet
+
+          // Extract headers from thead and add to worksheet
+          const headerCells = thead.querySelectorAll("th");
+          const headerData = Array.from(headerCells).map(
+            (cell) => cell.textContent
+          );
+          XLSX.utils.sheet_add_aoa(ws, [headerData], { origin: "A1" });
+
+          // Extract data from rows and add to worksheet
+          const dataRows = Array.from(rows).slice(0); // Exclude the header row
+          const rowData = dataRows.map((row) => {
+            const cells = row.querySelectorAll("td");
+            return Array.from(cells).map((cell) => cell.textContent);
+          });
+          XLSX.utils.sheet_add_aoa(ws, rowData, { origin: "A2" });
+
+          // Create a new workbook and append the worksheet
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+          // Generate Excel file and trigger download
+          XLSX.writeFile(wb, "report.xlsx");
+        } else {
+          alert("No data to export.");
+        }
+      }
+
+      function showErrorMessage(message) {
+        // alert(message);
+        const errorMessageElement = document.getElementById("errorMessage");
+
+        // Set the message content and style
+        errorMessageElement.textContent = message;
+        errorMessageElement.style.display = "block";
+      }
+
+      function showFrontendErrorMessage(){
+        let message = "Internal server error occured";
+
+        const errorMessageElement = document.getElementById("errorMessage");
+
+        // Set the message content and style
+        errorMessageElement.textContent = message;
+        errorMessageElement.style.display = "block";
+
+      }
+
+      function updateInputs() {
+        let startDate;
+        let endDate;
+        let startMonth;
+        let endMonth;
+
+        const dailyRadioButton = document.getElementById("daily");
+        const monthlyRadioButton = document.getElementById("monthly");
+        const reportType = dailyRadioButton.checked
+          ? dailyRadioButton.value
+          : monthlyRadioButton.value;
+
+        const dropdownValue =
+          document.getElementById("dropdownForReport").value;
+
+        if (reportType == "Monthly") {
+          var rawStartMonth = document.getElementById("startMonth").value; // '2024-01'
+          var rawEndMonth = document.getElementById("endMonth").value; // '2024-02'
+
+          console.log("rawStartMonth :", rawStartMonth);
+          console.log("rawStartMonth :", rawEndMonth);
+          startMonth = rawStartMonth;
+          endMonth = rawEndMonth;
+        }
+
+        startDate = document.getElementById("startDate").value;
+        endDate = document.getElementById("endDate").value;
+
+        // Add your validation logic here
+        const isValid =
+          ((startDate && endDate) || (startMonth && endMonth)) &&
+          (dropdownValue === "getIVRReportForFalcon" ||
+            dropdownValue === "getIVRReportForOmni");
+
+        // Show/hide and enable/disable the execute button based on validation result
+        executeButton.style.display = isValid ? "flex" : "none";
+        executeButton.disabled = !isValid;
+      }
+
+      function formatDate(rawDate, isEndOfMonth = false) {
+        console.log("Passed raw data inside formatDate:", rawDate);
+
+        const [year, month] = rawDate.split("-"); // assuming the format is 'yyyy-mm'
+        const day = isEndOfMonth ? 1 : 1; // Set day to 1 for both start and end date
+
+        // Ensure month and day are zero-padded
+        const formattedMonth = month.padStart(2, "0");
+        const formattedDay = day.toString().padStart(2, "0");
+
+        const date = new Date(
+          `${year}-${formattedMonth}-${formattedDay}T00:00:00.000Z`
+        );
+
+        // Check for invalid date
+        if (isNaN(date.getTime())) {
+          console.error("Invalid Date:", rawDate);
+          return null; // or handle the error as needed
+        }
+
+        // If it's the end of the month, set to the last second of the day
+        if (isEndOfMonth) {
+          date.setUTCMonth(date.getUTCMonth() + 1, 0); // Move to the next month and set to the last day
+          date.setUTCHours(23, 59, 59, 0);
+        }
+
+        // Format the date as 'yyyy-mm-dd HH:mm:ss.000'
+        const formattedDate = date.toISOString().replace("T", " ").slice(0, 23);
+
+        return formattedDate;
+      }
+
+      function displayData(data) {
+        // Variable Declarations
+        let startDate;
+        let endDate;
+        const resultContainer = document.getElementById("resultContainer");
+        const dropdownValue =
+          document.getElementById("dropdownForReport").value;
+        const dailyRadioButton = document.getElementById("daily");
+        const monthlyRadioButton = document.getElementById("monthly");
+        const reportType = dailyRadioButton.checked
+          ? dailyRadioButton.value
+          : monthlyRadioButton.value;
+        const tableContainer = document.createElement("div");
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const tbody = document.createElement("tbody");
+
+        // Set Start and End Date based on Report Type
+        if (reportType == "Monthly") {
+          var rawStartMonth = document.getElementById("startMonth").value; // '2024-01'
+          var rawEndMonth = document.getElementById("endMonth").value; // '2024-02'
+          startDate = rawStartMonth;
+          endDate = rawEndMonth;
+        } else {
+          startDate = document.getElementById("startDate").value;
+          endDate = document.getElementById("endDate").value;
+        }
+
+        // Display Title and Dates
+        const title =
+          dropdownValue === "getIVRReportForOmni"
+            ? "Dnata Omni Report"
+            : "Dnata Falcon Report";
+        resultContainer.innerHTML = `<h3 class="mt-4"><center><b>${title}<b></center></h3>`;
+        resultContainer.innerHTML += `<p class="mt-2"><center><strong>From :</strong> ${startDate} - <strong>To :</strong> ${endDate}<center></p>`;
+
+        // Table styling
+        tableContainer.style.overflowY = "auto";
+        tableContainer.style.maxHeight = "450px";
+        tableContainer.style.textAlign = "center";
+        table.classList.add("table", "table-striped");
+
+        // Table header
+        const headers = [
+          "Date",
+          "Offered",
+          "Answered",
+          "Transferred",
+          "Avg. handling time on IVR (in Seconds)",
+        ];
+        headers.forEach((headerText) => {
+          const th = document.createElement("th");
+          th.textContent = headerText;
+          thead.appendChild(th);
+        });
+        table.appendChild(thead);
+
+        // Table body
+
+        if (reportType == "Daily") {
+          data.responseBody.forEach((item, index) => {
+            try {
+              const row = document.createElement("tr");
+              row.classList.add(index % 2 === 0 ? "even-row" : "odd-row");
+
+              for (const key in item) {
+                const cell = document.createElement("td");
+                const cellValue = item[key];
+
+                if (key === "AvgHandlingTimeInSeconds" && cellValue === null) {
+                  cell.textContent = "-";
+                } else {
+                  cell.textContent = item[key];
+                }
+
+                row.appendChild(cell);
+              }
+
+              tbody.appendChild(row);
+            } catch (error) {
+              console.error("Error processing data item:", error);
+            }
+          });
+        } else {
+          data.responseBody.forEach((item, index) => {
+            try {
+              const row = document.createElement("tr");
+              row.classList.add(index % 2 === 0 ? "even-row" : "odd-row");
+
+              for (const key in item) {
+                const cell = document.createElement("td");
+                const cellValue = item[key];
+
+                if (key === "AvgHandlingTimeInSeconds" && cellValue === null) {
+                  cell.textContent = "-";
+                } else {
+                  cell.textContent = item[key];
+                }
+
+                row.appendChild(cell);
+              }
+
+              tbody.appendChild(row);
+            } catch (error) {
+              console.error("Error processing data item:", error);
+            }
+          });
+        }
+
+        // else {
+        //   const item = data.responseBody;
+
+        //   const row = document.createElement("tr");
+        //   row.classList.add("single-row"); // You can define the class for single rows if needed
+
+        //   for (const key in item) {
+        //     const cell = document.createElement("td");
+        //     const cellValue = item[key];
+
+        //     if (key === "AvgHandlingTimeInSeconds" && cellValue === null) {
+        //       cell.textContent = "-";
+        //     } else {
+        //       cell.textContent = item[key];
+        //     }
+
+        //     row.appendChild(cell);
+        //   }
+
+        //   tbody.appendChild(row);
+        // }
+
+        table.appendChild(tbody);
+        // Append table to result container
+        tableContainer.appendChild(table);
+        resultContainer.appendChild(tableContainer);
+      }
+    </script>
+  </body>
+</html>
